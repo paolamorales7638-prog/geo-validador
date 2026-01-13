@@ -6,27 +6,7 @@ import tempfile
 
 app = FastAPI()
 
-HTML = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Validador de Links Google Maps</title>
-</head>
-<body>
-    <h2>Validador de Links Google Maps</h2>
-    <form method="post" action="/validar">
-        <textarea name="links" rows="15" cols="120" placeholder="Pegá un link por línea"></textarea><br><br>
-        <button type="submit">Validar y descargar Excel</button>
-    </form>
-</body>
-</html>
-"""
-
-@app.get("/", response_class=HTMLResponse)
-def inicio():
-    return HTML
-
-def extraer_coords(link):
+def extraer_coords(link: str):
     patrones = [
         r"@(-?\d+\.\d+),(-?\d+\.\d+)",
         r"q=(-?\d+\.\d+),(-?\d+\.\d+)"
@@ -36,6 +16,31 @@ def extraer_coords(link):
         if m:
             return float(m.group(1)), float(m.group(2))
     return None, None
+
+
+@app.get("/")
+def inicio():
+    return HTMLResponse(
+        content="""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <title>Validador de Links Google Maps</title>
+        </head>
+        <body>
+            <h2>Validador de Links Google Maps</h2>
+            <form method="post" action="/validar">
+                <textarea name="links" rows="15" cols="120"
+                    placeholder="Pegá un link por línea"></textarea><br><br>
+                <button type="submit">Validar y descargar Excel</button>
+            </form>
+        </body>
+        </html>
+        """,
+        status_code=200
+    )
+
 
 @app.post("/validar")
 def validar(links: str = Form(...)):
@@ -83,3 +88,4 @@ def validar(links: str = Form(...)):
         filename="resultado_validacion_maps.xlsx",
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
